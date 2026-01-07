@@ -4,7 +4,7 @@ using System.Globalization;
 
 var projToEmplProj = new Dictionary<int, List<EmployeeProject>>();
 
-using (var reader = new StreamReader("TestData/data2.csv"))
+using (var reader = new StreamReader("TestData/data3.csv"))
 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 {
     csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("NULL");
@@ -54,17 +54,44 @@ using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 
 }
 
+var pairInfos = new Dictionary<(int, int), PairInfo>();
+
 foreach (var (projId, assignments) in projToEmplProj)
 {
-    var emplPeriods = assignments.GroupBy(a => a.EmpID)
+    var emplProjPeriods = assignments.GroupBy(a => a.EmpID)
         .ToDictionary(g => g.Key, g => Helpers.MergePeriods(g.Select(a => (a.DateFrom, a.DateTo))));
 
-    foreach(var emp1 in emplPeriods)
+    var emplIds = emplProjPeriods.Keys;
+    foreach (var empId1 in emplIds)
     {
-        Console.WriteLine($"Processing employee {emp1.Key} in project {projId}");
-        foreach(var period in emp1.Value)
+        foreach (var empId2 in emplIds)
         {
-            Console.WriteLine($"  Period: {period.Start.ToShortDateString()} - {period.End.ToShortDateString()}");
+            if (empId1 >= empId2) continue;
+            
+            var overlapDays = Helpers.CalculateOverlapDays(emplProjPeriods[empId1], emplProjPeriods[empId2]);
+
+            if (overlapDays > 0)
+            {
+                var pairKey = (empId1, empId2);
+                if (!pairInfos.ContainsKey(pairKey))
+                {
+                    pairInfos[pairKey] = new PairInfo();
+                }
+
+                pairInfos[pairKey].TotalDays += overlapDays;
+                pairInfos[pairKey].Projects.Add((projId, overlapDays));
+            }
         }
+    }
+}
+
+foreach (var pair in pairInfos.OrderBy(p => p.Key.Item1).ThenBy(p => p.Key.Item2))
+{
+    var (empId1, empId2) = pair.Key;
+    var info = pair.Value;
+    Console.WriteLine($"Employees {empId1} and {empId2} for {info.TotalDays}:");
+    foreach (var (projId, days) in info.Projects)
+    {
+        Console.WriteLine($"  Project {projId}: {days}");
     }
 }
