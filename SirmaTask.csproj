@@ -12,7 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="data.csv">
+    <None Update="TestData\data.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\data1.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\data2.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

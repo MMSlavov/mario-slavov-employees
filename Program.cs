@@ -1,13 +1,15 @@
 ﻿using CsvHelper;
+using SirmaTask.Models;
 using System.Globalization;
 
-using (var reader = new StreamReader("data.csv"))
+var projToEmplProj = new Dictionary<int, List<EmployeeProject>>();
+
+using (var reader = new StreamReader("TestData/data2.csv"))
 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 {
     csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("NULL");
     csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().NullValues.Add("NULL");
 
-    var projToEmplProj = new Dictionary<int, List<EmployeeProject>>();
 
     while (csv.Read())
     {
@@ -21,7 +23,7 @@ using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 
             var dateToField = csv.GetField<string>(3);
             var dateTo = DateTime.Today;
-            if(!string.IsNullOrEmpty(dateToField) && !dateToField.Equals("null", StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(dateToField) && !dateToField.Equals("null", StringComparison.InvariantCultureIgnoreCase))
             {
                 if (!DateTime.TryParse(dateToField, out dateTo))
                 {
@@ -50,22 +52,19 @@ using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
         }
     }
 
-    foreach (var record in projToEmplProj)
-    {
-        Console.WriteLine($"ProjectID: {record.Key}");
-        foreach(var empProj in record.Value)
-        {
-            Console.WriteLine($"\tEmpID: {empProj.EmpID}, DateFrom: {empProj.DateFrom.ToShortDateString()}, DateTo: {empProj.DateTo?.ToShortDateString()}");
-        }
-    }
-
-
 }
 
-public class EmployeeProject
+foreach (var (projId, assignments) in projToEmplProj)
 {
-    public int EmpID { get; set; }
-    public int ProjectID { get; set; }
-    public DateTime DateFrom { get; set; }
-    public DateTime? DateTo { get; set; }
+    var emplPeriods = assignments.GroupBy(a => a.EmpID)
+        .ToDictionary(g => g.Key, g => Helpers.MergePeriods(g.Select(a => (a.DateFrom, a.DateTo))));
+
+    foreach(var emp1 in emplPeriods)
+    {
+        Console.WriteLine($"Processing employee {emp1.Key} in project {projId}");
+        foreach(var period in emp1.Value)
+        {
+            Console.WriteLine($"  Period: {period.Start.ToShortDateString()} - {period.End.ToShortDateString()}");
+        }
+    }
 }
