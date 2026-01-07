@@ -7,11 +7,56 @@ using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
     csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("NULL");
     csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().NullValues.Add("NULL");
 
-    var records = csv.GetRecords<EmployeeProject>().ToList();
+    var projToEmplProj = new Dictionary<int, List<EmployeeProject>>();
 
-    foreach (var record in records)
+    while (csv.Read())
     {
-        Console.WriteLine($"EmpID: {record.EmpID}, ProjectID: {record.ProjectID}, DateFrom: {record.DateFrom.ToShortDateString()}, DateTo: {(record.DateTo.HasValue ? record.DateTo.Value.ToShortDateString() : "NULL")}");
+        try
+        {
+            var dateFromField = csv.GetField<string>(2);
+            if (!DateTime.TryParse(dateFromField, out var dateFrom))
+            {
+                throw new Exception("Invalid date format in DateFrom field.");
+            }
+
+            var dateToField = csv.GetField<string>(3);
+            var dateTo = DateTime.Today;
+            if(!string.IsNullOrEmpty(dateToField) && !dateToField.Equals("null", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!DateTime.TryParse(dateToField, out dateTo))
+                {
+                    throw new Exception("Invalid date format in DateTo field.");
+                }
+            }
+
+            var record = new EmployeeProject
+            {
+                EmpID = csv.GetField<int>(0),
+                ProjectID = csv.GetField<int>(1),
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+            };
+
+            if (!projToEmplProj.ContainsKey(record.ProjectID))
+            {
+                projToEmplProj[record.ProjectID] = new List<EmployeeProject>();
+            }
+
+            projToEmplProj[record.ProjectID].Add(record);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing record: {ex.Message}");
+        }
+    }
+
+    foreach (var record in projToEmplProj)
+    {
+        Console.WriteLine($"ProjectID: {record.Key}");
+        foreach(var empProj in record.Value)
+        {
+            Console.WriteLine($"\tEmpID: {empProj.EmpID}, DateFrom: {empProj.DateFrom.ToShortDateString()}, DateTo: {empProj.DateTo?.ToShortDateString()}");
+        }
     }
 
 
@@ -20,7 +65,7 @@ using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 public class EmployeeProject
 {
     public int EmpID { get; set; }
-    public string ProjectID { get; set; }
+    public int ProjectID { get; set; }
     public DateTime DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
 }
