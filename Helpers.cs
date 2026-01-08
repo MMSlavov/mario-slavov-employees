@@ -32,9 +32,9 @@
             {
                 var overlapStart = start1 > start2 ? start1 : start2;
                 var overlapEnd = end1 < end2 ? end1 : end2;
-                if (overlapStart < overlapEnd)
+                if (overlapStart <= overlapEnd)
                 {
-                    totalOverlap += (overlapEnd - overlapStart).Days;
+                    totalOverlap += (overlapEnd - overlapStart).Days + 1;
                 }
             }
         }
