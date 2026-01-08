@@ -4,13 +4,10 @@ using System.Globalization;
 
 var projToEmplProj = new Dictionary<int, List<EmployeeProject>>();
 
-using (var reader = new StreamReader("TestData/data3.csv"))
+Console.WriteLine("Please enter the path to the CSV file:");
+using (var reader = new StreamReader(Path.GetFullPath(Console.ReadLine())))
 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 {
-    csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("NULL");
-    csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().NullValues.Add("NULL");
-
-
     while (csv.Read())
     {
         try
@@ -85,13 +82,24 @@ foreach (var (projId, assignments) in projToEmplProj)
     }
 }
 
-foreach (var pair in pairInfos.OrderBy(p => p.Key.Item1).ThenBy(p => p.Key.Item2))
+if (pairInfos.Any())
 {
-    var (empId1, empId2) = pair.Key;
-    var info = pair.Value;
-    Console.WriteLine($"Employees {empId1} and {empId2} for {info.TotalDays}:");
-    foreach (var (projId, days) in info.Projects)
+    var maxDays = pairInfos.Max(p => p.Value.TotalDays);
+    var topPairs = pairInfos.Where(p => p.Value.TotalDays == maxDays).ToList();
+
+    foreach (var pair in topPairs)
     {
-        Console.WriteLine($"  Project {projId}: {days}");
+        var (empId1, empId2) = pair.Key;
+        var pairInfo = pair.Value;
+
+        foreach (var (projectId, days) in pairInfo.Projects)
+        {
+            Console.WriteLine($"Employee ID #1: {empId1}, Employee ID #2: {empId2}, Project ID: {projectId}, Days: {days}");
+        }
+        Console.WriteLine();
     }
+}
+else
+{
+    Console.WriteLine("No employee pairs found who worked together on projects.");
 }
