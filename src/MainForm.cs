@@ -100,7 +100,7 @@ namespace SirmaTask
                         lblStatus.ForeColor = System.Drawing.Color.Black;
                         Application.DoEvents();
 
-                        var results = service.ProcessCsvFile(openFileDialog.FileName);
+                        var results = service.GetTopEmployeePairs(openFileDialog.FileName);
 
                         dataGridView.DataSource = results;
 

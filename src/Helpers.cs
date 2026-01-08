@@ -19,13 +19,16 @@
                 current = sorted[i];
             }
         }
+
         merged.Add(current);
+
         return merged;
     }
 
     public static int CalculateOverlapDays(List<(DateTime Start, DateTime End)> list1, List<(DateTime Start, DateTime End)> list2)
     {
         int totalOverlap = 0;
+
         foreach (var (start1, end1) in list1)
         {
             foreach (var (start2, end2) in list2)
