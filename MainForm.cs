@@ -1,5 +1,4 @@
 using SirmaTask.Services;
-using System.Windows.Forms;
 
 namespace SirmaTask
 {
@@ -21,6 +20,8 @@ namespace SirmaTask
             this.Text = "Employee Project Analyzer";
             this.Size = new System.Drawing.Size(800, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
 
             btnSelectFile = new Button
             {
@@ -118,7 +119,7 @@ namespace SirmaTask
                     {
                         lblStatus.Text = $"Error: {ex.Message}";
                         lblStatus.ForeColor = System.Drawing.Color.Red;
-                        MessageBox.Show($"Error processing file: {ex.Message}", "Error", 
+                        MessageBox.Show($"Error processing file: {ex.Message}", "Error",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
